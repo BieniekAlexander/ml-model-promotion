@@ -12,6 +12,7 @@ dist/
 
 # Compiled Python bytecode
 *.py[cod]
+.ipynb_checkpoints
 
 # Log files
 *.log
@@ -48,3 +49,5 @@ Thumbs.db
 *.mov
 *.wmv
 
+# data
+data
