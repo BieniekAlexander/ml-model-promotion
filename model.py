@@ -1,0 +1,54 @@
+# Setup
+# imports
+import pandas as pd
+import numpy as np
+from xgboost import XGBClassifier
+
+
+# prepare data
+def preprocess(df):
+    # clean prediction feature, make binary
+    df['income'] = df['income'].str.replace('.', '')
+    assert set(df['income']) == set([">50K", "<=50K"])
+    
+    df['income_gt_50k'] = (df['income']==">50K")
+    df = df.drop(['income'], axis='columns')
+
+    # onehot encode remaining categorical variables
+    cat_cols = list(set(df.columns) - set(df._get_numeric_data().columns))
+    df = pd.get_dummies(df, columns=cat_cols, dtype="int64")
+    df['income_gt_50k'] = df['income_gt_50k'].astype(int)
+
+    return df
+
+train_data = pd.read_csv('data/census_income_census_income_data_adult.data', skipinitialspace=True, comment="|")
+test_data = pd.read_csv('data/census_income_census_income_data_adult.test', skipinitialspace=True, comment="|")
+
+train_data = preprocess(train_data)
+test_data = preprocess(test_data)
+
+cols = train_data.columns
+train_features = list(set(cols) - set(["income_gt_50k"]))
+X_train, y_train = train_data.loc[:, train_data.columns.isin(train_features)], np.array(train_data["income_gt_50k"])
+X_test, y_test = test_data.loc[:, test_data.columns.isin(train_features)], np.array(test_data["income_gt_50k"])
+
+for dummy_col in list(set(train_features) - set(X_test.columns)):
+    X_test[dummy_col] = 0
+
+
+# EDA
+X_train.describe()
+
+
+# Modeling
+model = XGBClassifier()
+model.fit(X_train, y_train)
+# TODO do cross-validation
+
+
+# Evaluation
+model.score(X_test, y_test)
+
+
+# Serializing
+model.save_model('model.pkl')
