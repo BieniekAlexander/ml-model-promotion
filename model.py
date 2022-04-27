@@ -3,6 +3,20 @@
 import pandas as pd
 import numpy as np
 from xgboost import XGBClassifier
+from google.cloud import storage
+from pathlib import Path
+
+
+
+# download data
+project_name = "mw-ds-model-promotion-poc-res"
+Path("data").mkdir(parents=True, exist_ok=True)
+storage_client = storage.Client(project_name)
+bucket = storage_client.get_bucket(project_name)
+
+for filename in ['census_income_census_income_data_adult.test.csv', 'census_income_census_income_data_adult.data.csv']:
+    blob = bucket.blob(filename)
+    blob.download_to_filename(f"data/{filename}")
 
 
 # prepare data
@@ -21,8 +35,8 @@ def preprocess(df):
 
     return df
 
-train_data = pd.read_csv('data/census_income_census_income_data_adult.data', skipinitialspace=True, comment="|")
-test_data = pd.read_csv('data/census_income_census_income_data_adult.test', skipinitialspace=True, comment="|")
+train_data = pd.read_csv('data/census_income_census_income_data_adult.data.csv', skipinitialspace=True, comment="|")
+test_data = pd.read_csv('data/census_income_census_income_data_adult.test.csv', skipinitialspace=True, comment="|")
 
 train_data = preprocess(train_data)
 test_data = preprocess(test_data)

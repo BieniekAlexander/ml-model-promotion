@@ -7,7 +7,6 @@ RUN pip install -r requirements.txt
 
 # Copy scripts and data and training
 COPY model.py /model.py
-COPY data /data
 
 # Set up the entry point to invoke the trainer
 CMD python model.py && tail -f /dev/null
