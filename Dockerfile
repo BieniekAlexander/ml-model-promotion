@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 COPY model.py /model.py
 
 # Set up the entry point to invoke the trainer
-CMD python model.py && tail -f /dev/null
+CMD python model.py && gsutil cp model.pkl gs://mw-ds-model-promotion-poc-res/census_model/model.pkl
