@@ -15,6 +15,5 @@ source setup.sh
 
 ## Updating Conda Environment
 ```
-conda env export > environment.yml
-conda list -e > requirements.txt
+pip freeze > requirements.txt
 ```
