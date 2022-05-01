@@ -1,0 +1,33 @@
+# Cloud build configuration to build a docker training image, submit it to the image registry, and run a training job
+# https://cloud.google.com/build/docs/building/build-containers
+# https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values 
+# https://cloud.google.com/build/docs/build-config-file-schema
+
+substitutions:
+  IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
+  TAG_NAME: "$COMMIT_SHA"
+  TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
+  IMAGE_URI: "gcr.io/$PROJECT_ID/$IMAGE_NAME:$COMMIT_SHA"
+timeout: 3600s
+steps:
+# build the docker image
+- name: "gcr.io/cloud-builders/docker"
+  args: ["build", "-t", "$IMAGE_URI", "."]
+
+# if the docker image build is successful, submit it to the image registry
+- name: "gcr.io/cloud-builders/docker"
+  args: ["push", "$IMAGE_URI"]
+
+# run a training job using the docker image we just uploaded
+- name: "gcr.io/cloud-builders/gcloud"
+  args:
+  - "ai"
+  - "custom-jobs"
+  - "create"
+  - "--display-name=$TRAINING_JOB_NAME"
+  - "executor-image-uri=$IMAGE_URI"
+  - "--region=$LOCATION"
+  - "--worker-pool-spec=machine-type=TODO"
+  - "replica-count=TODO"
+  - "local-package-path=TODO"
+  - "script=TODO"
