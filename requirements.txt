@@ -36,8 +36,8 @@ grpcio==1.44.0
 grpcio-status==1.44.0
 httplib2==0.20.4
 idna==3.3
-ipykernel==7.33.0
-ipython==8.2.0
+ipykernel==6.12.1
+ipython==7.33.0
 jedi==0.18.1
 Jinja2==3.1.1
 joblib==1.1.0
