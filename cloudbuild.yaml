@@ -7,16 +7,16 @@ substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
   _TAG_NAME: "$COMMIT_SHA"
   _TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
-  _IMAGE_URI: "gcr.io/$PROJECT_ID/$_IMAGE_NAME:$_TAG_NAME"
+  _IMAGE_URI: "gcr.io/$PROJECT_ID/${_IMAGE_NAME}:${_TAG_NAME}"
 timeout: 3600s
 steps:
 # build the docker image
 - name: "gcr.io/cloud-builders/docker"
-  args: ["build", "-t", "$_IMAGE_URI", "."]
+  args: ["build", "-t", "${_IMAGE_URI}", "."]
 
 # if the docker image build is successful, submit it to the image registry
 - name: "gcr.io/cloud-builders/docker"
-  args: ["push", "$_IMAGE_URI"]
+  args: ["push", "${_IMAGE_URI}"]
 
 # run a training job using the docker image we just uploaded
 - name: "gcr.io/cloud-builders/gcloud"
@@ -24,7 +24,7 @@ steps:
   - "ai"
   - "custom-jobs"
   - "create"
-  - "--display-name=$_TRAINING_JOB_NAME"
-  - "executor-image-uri=$_IMAGE_URI"
+  - "--display-name=${_TRAINING_JOB_NAME}"
+  - "executor-image-uri=${_IMAGE_URI}"
   - "--region=$LOCATION"
   - "--machine-type=n2-standard-4"
