@@ -2,6 +2,7 @@
 # https://cloud.google.com/build/docs/building/build-containers
 # https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values 
 # https://cloud.google.com/build/docs/build-config-file-schema
+# https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
 
 substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
@@ -24,7 +25,6 @@ steps:
   - "ai"
   - "custom-jobs"
   - "create"
-  - "--display-name=${_TRAINING_JOB_NAME}"
-  - "--executor-image-uri=${_IMAGE_URI}"
+  - "--worker-poolspec=executor-image-uri=${_IMAGE_URI},machine-type=n2-standard-4"
+  - "--display-name=${_TRAINING_JOB_NAME}"  
   - "--region=${LOCATION}"
-  - "--machine-type=n2-standard-4"
