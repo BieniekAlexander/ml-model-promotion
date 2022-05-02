@@ -5,7 +5,7 @@
 
 substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
-  _TAG_NAME: "$COMMIT_SHA"
+  _TAG_NAME: "${COMMIT_SHA}"
   _TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
   _IMAGE_URI: "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_TAG_NAME}"
 timeout: 3600s
@@ -26,5 +26,5 @@ steps:
   - "create"
   - "--display-name=${_TRAINING_JOB_NAME}"
   - "executor-image-uri=${_IMAGE_URI}"
-  - "--region=$LOCATION"
+  - "--region=${LOCATION}"
   - "--machine-type=n2-standard-4"
