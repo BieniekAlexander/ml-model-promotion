@@ -18,13 +18,13 @@ steps:
 - name: "gcr.io/cloud-builders/docker"
   args: ["push", "${_IMAGE_URI}"]
 
-# run a training job using the docker image we just uploaded
+# run a training job using the docker image we just uploaded - https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
 - name: "gcr.io/cloud-builders/gcloud"
   args:
   - "ai"
   - "custom-jobs"
   - "create"
   - "--display-name=${_TRAINING_JOB_NAME}"
-  - "executor-image-uri=${_IMAGE_URI}"
+  - "--executor-image-uri=${_IMAGE_URI}"
   - "--region=${LOCATION}"
   - "--machine-type=n2-standard-4"
