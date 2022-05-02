@@ -4,10 +4,10 @@
 # https://cloud.google.com/build/docs/build-config-file-schema
 
 substitutions:
-  IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
+  DOCKER_IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
   TAG_NAME: "$COMMIT_SHA"
   TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
-  IMAGE_URI: "gcr.io/$PROJECT_ID/$IMAGE_NAME:$COMMIT_SHA"
+  IMAGE_URI: "gcr.io/$PROJECT_ID/$DOCKER_IMAGE_NAME:$COMMIT_SHA"
 timeout: 3600s
 steps:
 # build the docker image
