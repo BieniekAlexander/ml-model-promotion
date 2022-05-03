@@ -27,7 +27,7 @@ steps:
   - "custom-jobs"
   - "create"
   - "--worker-pool-spec=container-image-uri=${_IMAGE_URI},machine-type=n2-standard-4"
+  - "--custom-job-spec=baseOutputDirectory=gs://mw-ds-model-promotion-poc-res/census_model"
   - "--display-name=${_TRAINING_JOB_NAME}"  
   - "--region=${_REGION}"
 
-  
