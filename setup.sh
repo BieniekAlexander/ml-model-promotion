@@ -20,7 +20,7 @@ echo "#######################"
 # TODO
 mkdir -p data
 # gsutil -m cp \
-#   "gs://amazing-public-data/census_income/census_income_data_adult.data" \
-#   "gs://amazing-public-data/census_income/census_income_data_adult.names" \
-#   "gs://amazing-public-data/census_income/census_income_data_adult.test" \
-#   data
+#	"gs://amazing-public-data/census_income/census_income_data_adult.data" \
+#	"gs://amazing-public-data/census_income/census_income_data_adult.names" \
+#	"gs://amazing-public-data/census_income/census_income_data_adult.test" \
+#	data
