@@ -29,3 +29,5 @@ steps:
   - "--worker-pool-spec=container-image-uri=${_IMAGE_URI},machine-type=n2-standard-4"
   - "--display-name=${_TRAINING_JOB_NAME}"  
   - "--region=${_REGION}"
+
+  

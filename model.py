@@ -5,7 +5,7 @@ import numpy as np
 from xgboost import XGBClassifier
 from google.cloud import storage
 from pathlib import Path
-     
+	 
 
 
 # download data
@@ -15,25 +15,25 @@ storage_client = storage.Client(project_name)
 bucket = storage_client.get_bucket(project_name)
 
 for filename in ['census_income_census_income_data_adult.test.csv', 'census_income_census_income_data_adult.data.csv']:
-    blob = bucket.blob(filename)
-    blob.download_to_filename(f"data/{filename}")
+	blob = bucket.blob(filename)
+	blob.download_to_filename(f"data/{filename}")
 
 
 # prepare data
 def preprocess(df):
-    # clean prediction feature, make binary
-    df['income'] = df['income'].str.replace('.', '')
-    assert set(df['income']) == set([">50K", "<=50K"])
-    
-    df['income_gt_50k'] = (df['income']==">50K")
-    df = df.drop(['income'], axis='columns')
+	# clean prediction feature, make binary
+	df['income'] = df['income'].str.replace('.', '')
+	assert set(df['income']) == set([">50K", "<=50K"])
+	
+	df['income_gt_50k'] = (df['income']==">50K")
+	df = df.drop(['income'], axis='columns')
 
-    # onehot encode remaining categorical variables
-    cat_cols = list(set(df.columns) - set(df._get_numeric_data().columns))
-    df = pd.get_dummies(df, columns=cat_cols, dtype="int64")
-    df['income_gt_50k'] = df['income_gt_50k'].astype(int)
+	# onehot encode remaining categorical variables
+	cat_cols = list(set(df.columns) - set(df._get_numeric_data().columns))
+	df = pd.get_dummies(df, columns=cat_cols, dtype="int64")
+	df['income_gt_50k'] = df['income_gt_50k'].astype(int)
 
-    return df
+	return df
 
 train_data = pd.read_csv('data/census_income_census_income_data_adult.data.csv', skipinitialspace=True, comment="|")
 test_data = pd.read_csv('data/census_income_census_income_data_adult.test.csv', skipinitialspace=True, comment="|")
@@ -47,7 +47,7 @@ X_train, y_train = train_data.loc[:, train_data.columns.isin(train_features)], n
 X_test, y_test = test_data.loc[:, test_data.columns.isin(train_features)], np.array(test_data["income_gt_50k"])
 
 for dummy_col in list(set(train_features) - set(X_test.columns)):
-    X_test[dummy_col] = 0
+	X_test[dummy_col] = 0
 
 
 # EDA
