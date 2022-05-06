@@ -65,8 +65,8 @@ def create_model(filename):
 
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Process some integers.')
-	parser.add_argument('--filename', dest='filename', default="model.pkl",
+	parser = argparse.ArgumentParser(description='Output model somewhere')
+	parser.add_argument('--filename', dest='filename', default="model.pkl", required=False,
                     help='name of the model output file (default: model.pkl)')
 
 	args = parser.parse_args()

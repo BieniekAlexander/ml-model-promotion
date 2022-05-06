@@ -10,7 +10,7 @@ COPY model.py /model.py
 
 # Set up the entry point to invoke the trainer
 # MODEL_OBJECT_NAME needs to have the name MODEL.<ext>, per Vertex AI
-ARG MODEL_FILENAME=model.pkl
-ARG MODEL_OBJECT_NAME=model.pkl
-ARG MODEL_BUCKET_PATH
+ENV MODEL_FILENAME model.pkl
+ENV MODEL_OBJECT_NAME model.pkl
+ENV MODEL_BUCKET_PATH
 CMD python model.py --filename $MODEL_FILENAME && gsutil cp $MODEL_FILENAME $MODEL_BUCKET_PATH/$MODEL_OBJECT_NAME
