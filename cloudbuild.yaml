@@ -2,7 +2,6 @@
 # https://cloud.google.com/build/docs/building/build-containers
 # https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values 
 # https://cloud.google.com/build/docs/build-config-file-schema
-# https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
 
 substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
@@ -10,24 +9,109 @@ substitutions:
   _TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
   _IMAGE_URI: "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_TAG_NAME}"
   _REGION: us-east1
-timeout: 3600s
+  _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
+  _MODEL_NAME: "census_model-${_TAG_NAME}"
+  _ENDPOINT_NAME: "${_MODEL_NAME}-endpoint"
+  _VAI_DIE
+timeout: 600s
+
 steps:
-# build the docker image
-- name: "gcr.io/cloud-builders/docker"
+- id: "Build the training docker image"
+  name: "gcr.io/cloud-builders/docker"
   args: ["build", "-t", "${_IMAGE_URI}", "."]
 
-# if the docker image build is successful, submit it to the image registry
-- name: "gcr.io/cloud-builders/docker"
+- id: "Submit the training image to the image registry"
+  name: "gcr.io/cloud-builders/docker"
   args: ["push", "${_IMAGE_URI}"]
 
-# run a training job using the docker image we just uploaded - https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
-- name: "gcr.io/cloud-builders/gcloud"
+- id: "create the CustomJobSpec YAML file for the Vertex AI Training Job"
+  name: gcr.io/cloud-builders/curl
+  entrypoint: /bin/bash
   args:
-  - "ai"
-  - "custom-jobs"
-  - "create"
-  - "--worker-pool-spec=container-image-uri=${_IMAGE_URI},machine-type=n2-standard-4"
-  - "--custom-job-spec=baseOutputDirectory=gs://mw-ds-model-promotion-poc-res/census_model"
-  - "--display-name=${_TRAINING_JOB_NAME}"  
-  - "--region=${_REGION}"
+    - -c 
+    - |
+      cat << EOF > /workspace/custom_job_spec.yml
+      baseOutputDirectory:
+        outputUriPrefix: "${_MODEL_GCS_PATH}"
+      EOF
+ 
+# https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
+# https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpeclmao
+# TODO when configured, this will create the serving container but not create the VAI model from it
+- id: "run a training job using the docker image we just uploaded, and wait for the job to finish"
+  name: "gcr.io/cloud-builders/gcloud"
+  entrypoint: /bin/bash
+  args:
+    - -c 
+    - |
+      gcloud ai custom-jobs create \
+        --worker-pool-spec=container-image-uri=${_IMAGE_URI},machine-type=n2-standard-4 \
+        --args=MODEL_BUCKET_PATH=$_MODEL_GCS_PATH
+        --config=/workspace/custom_job_spec.yml \
+        --display-name=${_TRAINING_JOB_NAME} \
+        --region=${_REGION} \
+        | grep describe | sed 's|.*/||' > /workspace/custom_job_id >&2
 
+      until gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id) | grep -e "^endTime:"
+      do
+        sleep 10
+      done
+      
+      JOB_STATE=$(gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id) | grep -e "^state:" | awk '{print $2}')
+
+      if [ $JOB_STATE != "JOB_STATE_SUCCEEDED" ] ; then
+        exit 1
+      fi
+
+# https://cloud.google.com/sdk/gcloud/reference/ai/models
+# TODO a model should be able to receive new versions, but it looks like vertex AI doesn't allow this through the CLI yet
+# TODO how are we selecting the right container to build from? It's hardcoded right now
+- id: "Upload/Update a Vertex AI Model using the serialized model we just uploaded"
+  name: gcr.io/cloud-builders/gcloud
+  entrypoint: /bin/bash
+  args:
+    - -c 
+    - |
+      # check if the model currently exists, as identified by display name
+      # TODO what if display name isn't unique? Is there a better identifier?
+      gcloud ai models list --region=${_REGION} --format=json | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' | sed 's/"//g' | awk -F'/' '{  print $6 }' > /workspace/model_id
+
+      if [ -s /workspace/model_id ]; then
+        echo "Model exists, TODO update model"
+        gcloud ai models update ... # TODO update when model update command exists
+      else
+        echo "Model does not exist, uploading new model"
+        gcloud ai models upload \
+        --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-5:latest \
+        --artifact-uri=$_MODEL_GCS_PATH \
+        --display-name=${_MODEL_NAME} \
+        --region=$_REGION
+
+        gcloud ai models list --region=${_REGION} --format=json | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' | sed 's/"//g' | awk -F'/' '{  print $6 }' > /workspace/model_id
+      fi
+
+
+# https://cloud.google.com/sdk/gcloud/reference/ai/endpoints
+# TODO how are we selecting the right container to build from? It's hardcoded right now
+- id: "Create/Update a Vertex AI Endpoint and add the new model to it"
+  name: gcr.io/cloud-builders/gcloud
+  entrypoint: /bin/bash
+  args:
+    - -c 
+    - |
+      # check if the endpoint currently exists, as identified by display name
+      # TODO what if endpoint name isn't unique? Is there a better identifier?
+      gcloud ai endpoints list --region=${_REGION} --format=json | jq '.[] | select(.displayName=="${_ENDPOINT_NAME}") | .name' | sed 's/"//g' | awk -F'/' '{  print $6 }' > /workspace/endpoint_id
+
+      if [ -s /workspace/endpoint_id ]; then
+        echo "Endpoint exists, skipping endpoint creation"
+      else
+        echo "Endpoint does not exist yet, creating endpoint"
+        gcloud ai endpoints create \
+        --display-name=${_ENDPOINT_NAME} \
+        --region=$_REGION
+
+        gcloud ai endpoints list --region=${_REGION} --format=json | jq '.[] | select(.displayName=="${_ENDPOINT_NAME}") | .name' | sed 's/"//g' | awk -F'/' '{  print $6 }' > /workspace/endpoint_id
+      fi
+
+      gcloud ai endpoints deploy-model $(</workspace/endpoint_id) --project=${PROJECT_ID} --region=${_REGION} --display-name=${_MODEL_NAME} --model=$(</workspace/model_id)

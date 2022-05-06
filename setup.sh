@@ -12,3 +12,9 @@ if [ -z "$(conda env list | grep $CONDA_ENV_NAME)" ] ; then # create conda env i
 else
 	conda activate $CONDA_ENV_NAME
 fi
+
+
+echo "####################################"
+echo "### Making credentials directory ###"
+echo "####################################"
+mkdir -p creds
