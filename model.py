@@ -70,4 +70,5 @@ if __name__ == "__main__":
                     help='name of the model output file (default: model.pkl)')
 
 	args = parser.parse_args()
+	print(f"arg={args.filename}")
 	create_model(args.filename)
