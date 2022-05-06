@@ -29,9 +29,15 @@ steps:
   args:
     - -c 
     - |
+      # TODO maybe move args out of custom-jobs create command and move into here
       cat << EOF > /workspace/custom_job_spec.yml
       baseOutputDirectory:
         outputUriPrefix: "${_MODEL_GCS_PATH}"
+      workerPoolSpecs:
+        containerSpec:
+          env:
+          - name: MODEL_BUCKET_PATH
+            value: ${_MODEL_GCS_PATH}
       EOF
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
@@ -45,7 +51,6 @@ steps:
     - |
       gcloud ai custom-jobs create \
         --worker-pool-spec=container-image-uri=${_IMAGE_URI},machine-type=n2-standard-4 \
-        --args=MODEL_BUCKET_PATH=$_MODEL_GCS_PATH \
         --config=/workspace/custom_job_spec.yml \
         --display-name=${_TRAINING_JOB_NAME} \
         --region=${_REGION} \
