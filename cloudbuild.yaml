@@ -58,7 +58,7 @@ steps:
       
       JOB_STATE=$(gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id) | grep -e "^state:" | awk '{print $2}')
 
-      if [ $JOB_STATE != "JOB_STATE_SUCCEEDED" ] ; then
+      if [ $$JOB_STATE != "JOB_STATE_SUCCEEDED" ] ; then
         exit 1
       fi
 
