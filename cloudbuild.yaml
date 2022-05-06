@@ -12,7 +12,7 @@ substitutions:
   _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
   _MODEL_NAME: "census_model-${_TAG_NAME}"
   _ENDPOINT_NAME: "${_MODEL_NAME}-endpoint"
-timeout: 600s
+timeout: 1800s
 
 steps:
 - id: "Build the training docker image"
