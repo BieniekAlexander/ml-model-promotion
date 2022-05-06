@@ -36,12 +36,12 @@ steps:
       workerPoolSpecs:
         containerSpec:
           env:
-          - name: MODEL_BUCKET_PATH
+          - name: ARG_MODEL_BUCKET_PATH
             value: ${_MODEL_GCS_PATH}
       EOF
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
-# https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpeclmao
+# https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec
 # TODO when configured, this will create the serving container but not create the VAI model from it
 - id: "run a training job using the docker image we just uploaded, and wait for the job to finish"
   name: "gcr.io/cloud-builders/gcloud"
