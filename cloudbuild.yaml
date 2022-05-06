@@ -12,7 +12,6 @@ substitutions:
   _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
   _MODEL_NAME: "census_model-${_TAG_NAME}"
   _ENDPOINT_NAME: "${_MODEL_NAME}-endpoint"
-  _VAI_DIE
 timeout: 600s
 
 steps:
