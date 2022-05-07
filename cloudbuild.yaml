@@ -81,7 +81,7 @@ steps:
       gcloud ai models list --region=${_REGION} --format=json \
         | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' \
         | sed 's/"//g' \
-        | awk -F'/' '{  print $6 }' \
+        | awk -F'/' '{ print $6 }' \
         > /workspace/model_id
 
       if [ -s /workspace/model_id ]; then
@@ -98,7 +98,7 @@ steps:
         gcloud ai models list --region=${_REGION} --format=json \
           | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' \
           | sed 's/"//g' \
-          | awk -F'/' '{  print $6 }' \
+          | awk -F'/' '{ print $6 }' \
           > /workspace/model_id
       fi
 

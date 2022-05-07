@@ -1,6 +1,9 @@
 FROM gcr.io/deeplearning-platform-release/tf2-cpu.2-6
 WORKDIR /
 
+# get some bash utils
+RUN apk add --no-cache jq
+
 # set up python environment
 COPY requirements.txt .
 RUN pip install -r requirements.txt
