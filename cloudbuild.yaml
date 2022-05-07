@@ -50,7 +50,7 @@ steps:
         --display-name=${_TRAINING_JOB_NAME} \
         --region=${_REGION} \
         2>&1 \
-        | grep describe
+        | grep describe \
         | sed 's|.*/||' \
         > /workspace/custom_job_id
 
