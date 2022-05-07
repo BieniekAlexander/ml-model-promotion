@@ -3,7 +3,6 @@ WORKDIR /
 
 # get some bash utils
 RUN curl -L -o /usr/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-RUN jq
 
 # set up python environment
 COPY requirements.txt .
