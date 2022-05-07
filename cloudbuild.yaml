@@ -33,11 +33,6 @@ steps:
       cat << EOF > /workspace/custom_job_spec.yml
       baseOutputDirectory:
         outputUriPrefix: "${_MODEL_GCS_PATH}"
-      workerPoolSpecs:
-        containerSpec:
-          env:
-          - name: ARG_MODEL_BUCKET_PATH
-            value: ${_MODEL_GCS_PATH}
       EOF
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
@@ -54,7 +49,10 @@ steps:
         --config=/workspace/custom_job_spec.yml \
         --display-name=${_TRAINING_JOB_NAME} \
         --region=${_REGION} \
-        | grep describe | sed 's|.*/||' > /workspace/custom_job_id >&2
+        2>&1 \
+        | grep describe
+        | sed 's|.*/||' \
+        > /workspace/custom_job_id
 
       echo "gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id)" # TODO debugging, remove
       until gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id) | grep -e "^endTime:"
