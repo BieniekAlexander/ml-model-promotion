@@ -130,13 +130,13 @@ steps:
         --region=$_REGION
 
         gcloud ai models list --region=${_REGION} --format=json \
-        python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/model_id
+        python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/model_id 
       fi
 
 
 # https://cloud.google.com/sdk/gcloud/reference/ai/endpoints
 # TODO how are we selecting the right container to build from? It's hardcoded right now
-- id: "Create/Update a Vertex AI Endpoint and add the new model to it"
+- id: "Create/Update a Vertex AI Endpoint and deploy the new model to it"
   name: gcr.io/cloud-builders/gcloud
   entrypoint: /bin/bash
   args:
@@ -145,7 +145,7 @@ steps:
       # check if the endpoint currently exists, as identified by display name
       # TODO what if endpoint name isn't unique? Is there a better identifier?
       gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
-      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
+      python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
 
       if [ -s /workspace/endpoint_id ]; then
         echo "Endpoint exists, skipping endpoint creation"
@@ -155,7 +155,7 @@ steps:
         --display-name=${_ENDPOINT_NAME} \
         --region=$_REGION
 
-        gcloud ai endpoints list --region=${_REGION} --format=json > --json-path=/workspace/gcloud_response.json
+        gcloud ai endpoints list --region=${_REGION} --format=json > workspace/gcloud_response.json
         python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
       fi
 
