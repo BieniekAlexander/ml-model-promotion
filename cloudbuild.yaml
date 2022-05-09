@@ -152,10 +152,10 @@ steps:
       else
         echo "Endpoint does not exist yet, creating endpoint"
         gcloud ai endpoints create \
-        --display-name=${_ENDPOINT_NAME} \
-        --region=$_REGION
+          --display-name=${_ENDPOINT_NAME} \
+          --region=${_REGION}
 
-        gcloud ai endpoints list --region=${_REGION} --format=json > workspace/gcloud_response.json
+        gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
         python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
       fi
 
