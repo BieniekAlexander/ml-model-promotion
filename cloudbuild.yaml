@@ -43,6 +43,8 @@ steps:
     - |
       # this python util is helping me make up for the lack of jq on gcloud build images:
       # jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name'
+      # | sed 's/"//g' \
+      # | awk -F'/' '{  print $6 }'
       cat <<EOF > /workspace/get_id_by_display_name.py
       import argparse
       import json
@@ -114,10 +116,7 @@ steps:
       # check if the model currently exists, as identified by display name
       # TODO what if display name isn't unique? Is there a better identifier?
       gcloud ai models list --region=${_REGION} --format=json > /workspace/gcloud_response.json
-      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json \
-        | sed 's/"//g' \
-        | awk -F'/' '{ print $6 }' \
-        > /workspace/model_id
+      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/model_id
 
       if [ -s /workspace/model_id ]; then
         echo "Model exists, TODO update model"
@@ -132,8 +131,6 @@ steps:
 
         gcloud ai models list --region=${_REGION} --format=json \
           | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' \
-          | sed 's/"//g' \
-          | awk -F'/' '{ print $6 }' \
           > /workspace/model_id
       fi
 
@@ -149,10 +146,7 @@ steps:
       # check if the endpoint currently exists, as identified by display name
       # TODO what if endpoint name isn't unique? Is there a better identifier?
       gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
-      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json \
-        | sed 's/"//g' \
-        | awk -F'/' '{  print $6 }' \
-        > /workspace/endpoint_id
+      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
 
       if [ -s /workspace/endpoint_id ]; then
         echo "Endpoint exists, skipping endpoint creation"
@@ -162,11 +156,8 @@ steps:
         --display-name=${_ENDPOINT_NAME} \
         --region=$_REGION
 
-        gcloud ai endpoints list --region=${_REGION} --format=json \
-          | jq '.[] | select(.displayName=="${_ENDPOINT_NAME}") | .name' \ 
-          | sed 's/"//g' \
-          | awk -F'/' '{  print $6 }' \
-          > /workspace/endpoint_id
+        gcloud ai endpoints list --region=${_REGION} --format=json > --json-path=/workspace/gcloud_response.json
+        python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
       fi
 
       gcloud ai endpoints deploy-model $(</workspace/endpoint_id) \
