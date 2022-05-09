@@ -1,7 +1,7 @@
 import argparse
 import json
 
-def get_id_by_display_name(lst: list, display_name: str):
+def get_id_by_display_name(lst, display_name):
 	""" Find the json object with the specified display name, and return the id field at the end of the object's name """
 	items = list(filter(lambda x: x['displayName']==display_name, lst))
 	item = items[0]
