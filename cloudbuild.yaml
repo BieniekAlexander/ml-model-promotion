@@ -36,7 +36,7 @@ steps:
       EOF
 
 - id: "Write a python util to parse gcloud data"
-  name: "gcr.io/cloud-builder/curl"
+  name: "gcr.io/cloud-builders/curl"
   entrypoint: /bin/bash
   args:
     - -c
