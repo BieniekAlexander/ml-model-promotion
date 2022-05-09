@@ -130,8 +130,7 @@ steps:
         --region=$_REGION
 
         gcloud ai models list --region=${_REGION} --format=json \
-          | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' \
-          > /workspace/model_id
+        python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/model_id
       fi
 
 
