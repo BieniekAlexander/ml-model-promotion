@@ -23,7 +23,7 @@ steps:
   name: "gcr.io/cloud-builders/docker"
   args: ["push", "${_IMAGE_URI}"]
 
-- id: "create the CustomJobSpec YAML file for the Vertex AI Training Job"
+- id: "Create the CustomJobSpec YAML file for the Vertex AI Training Job"
   name: gcr.io/cloud-builders/curl
   entrypoint: /bin/bash
   args:
@@ -34,11 +34,46 @@ steps:
       baseOutputDirectory:
         outputUriPrefix: "${_MODEL_GCS_PATH}"
       EOF
+
+- id: "Write a python util to parse gcloud data"
+  name: "gcr.io/cloud-builder/curl"
+  entrypoint: /bin/bash
+  args:
+    - -c
+    - |
+      # this python util is helping me make up for the lack of jq on gcloud build images:
+      # jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name'
+      cat <<EOF > /workspace/get_id_by_display_name.py
+      import argparse
+      import json
+
+      def get_id_by_display_name(lst: list, display_name: str):
+        """ Find the json object with the specified display name, and return the id field at the end of the object's name """
+        items = list(filter(lambda x: x['displayName']==display_name, lst))
+        item = items[0]
+        return item['name'].rsplit('/', 1)[-1]
+
+
+      if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description='Get id of google api object from display name')
+        parser.add_argument('--display-name', dest='display_name', required=True,
+                          help='name of google object to find')
+        parser.add_argument('--json-path', dest='json_path', required=True,
+                          help='path to the json file to read')
+
+        args = parser.parse_args()
+        obj = json.load(open(args.json_path, 'r'))
+
+        assert isinstance(obj, list)
+
+        print(get_id_by_display_name(obj, args.display_name))
+      EOF
+
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec
 # TODO when configured, this will create the serving container but not create the VAI model from it
-- id: "run a training job using the docker image we just uploaded, and wait for the job to finish"
+- id: "Run a training job using the docker image we just uploaded, and wait for the job to finish"
   name: "gcr.io/cloud-builders/gcloud"
   entrypoint: /bin/bash
   args:
@@ -78,8 +113,8 @@ steps:
     - |
       # check if the model currently exists, as identified by display name
       # TODO what if display name isn't unique? Is there a better identifier?
-      gcloud ai models list --region=${_REGION} --format=json \
-        | jq '.[] | select(.displayName=="${_MODEL_NAME}") | .name' \
+      gcloud ai models list --region=${_REGION} --format=json > /workspace/gcloud_response.json
+      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json \
         | sed 's/"//g' \
         | awk -F'/' '{ print $6 }' \
         > /workspace/model_id
@@ -113,8 +148,8 @@ steps:
     - |
       # check if the endpoint currently exists, as identified by display name
       # TODO what if endpoint name isn't unique? Is there a better identifier?
-      gcloud ai endpoints list --region=${_REGION} --format=json  \
-        | jq '.[] | select(.displayName=="${_ENDPOINT_NAME}")| .name' \
+      gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
+      python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json \
         | sed 's/"//g' \
         | awk -F'/' '{  print $6 }' \
         > /workspace/endpoint_id
