@@ -153,6 +153,7 @@ steps:
       # check if the endpoint currently exists, as identified by display name
       # TODO what if endpoint name isn't unique? Is there a better identifier?
         
+      gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
       python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
       rm /workspace/gcloud_response.json
 
