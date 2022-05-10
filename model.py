@@ -22,7 +22,7 @@ def create_model(filename):
 	# prepare data
 	def preprocess(df):
 		# clean prediction feature, make binary
-		df['income'] = df['income'].str.replace('.', '')
+		df['income'] = df['income'].str.replace('.', '', regex=False)
 		assert set(df['income']) == set([">50K", "<=50K"])
 		
 		df['income_gt_50k'] = (df['income']==">50K")
@@ -46,8 +46,13 @@ def create_model(filename):
 	X_train, y_train = train_data.loc[:, train_data.columns.isin(train_features)], np.array(train_data["income_gt_50k"])
 	X_test, y_test = test_data.loc[:, test_data.columns.isin(train_features)], np.array(test_data["income_gt_50k"])
 
-	for dummy_col in list(set(train_features) - set(X_test.columns)):
+	# make sure the test data has all of the train data dummy columns
+	for dummy_col in list(set(X_train.columns) - set(X_test.columns)):
 		X_test[dummy_col] = 0
+
+	# remove extraneous columns
+	X_test.drop(list(set(X_test.columns) - set(X_train.columns)))
+	X_test = X_test[X_train.columns]
 
 	# EDA
 	X_train.describe()
@@ -61,14 +66,14 @@ def create_model(filename):
 	model.score(X_test, y_test)
 
 	# Serializing
-	model.save_model(filename)
+	import joblib
+	joblib.dump(model, filename, compress=True)
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Output model somewhere')
-	parser.add_argument('--filename', dest='filename', default="model.pkl", required=False,
-                    help='name of the model output file (default: model.pkl)')
+	parser.add_argument('--filename', dest='filename', default="model.joblib", required=False,
+                    help='name of the model output file (default: model.joblib)')
 
 	args = parser.parse_args()
-	print(f"arg={args.filename}")
 	create_model(args.filename)
