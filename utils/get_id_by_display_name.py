@@ -1,6 +1,6 @@
+from __future__ import print_function
 import argparse
 import json
-from __future__ import print_function
 
 def get_id_by_display_name(lst, display_name):
 	""" Find the json object with the specified display name, and return the id field at the end of the object's name """
