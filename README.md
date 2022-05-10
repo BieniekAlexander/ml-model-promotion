@@ -10,10 +10,21 @@ Modeling repo for ML model environment promotion experiment. The goal is to find
 ## Initial Setup
 ```
 # preconditions: installed conda, python 3.9, ... 
+# run initial setup
 source setup.sh
+
+# gather service account credentials for local running - https://cloud.google.com/docs/authentication/getting-started
+export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/creds/___.json"
 ```
 
 ## Updating Conda Environment
 ```
-conda env export > environment.yml
+pip freeze > requirements.txt
+```
+
+
+# Building the code
+```
+# building the docker image
+docker build .
 ```

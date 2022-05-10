@@ -20,6 +20,7 @@ dist/
 # Package files
 *.jar
 *.pkl
+*.joblib
 
 # Maven
 target/
@@ -52,3 +53,4 @@ Thumbs.db
 
 # data
 data
+creds
