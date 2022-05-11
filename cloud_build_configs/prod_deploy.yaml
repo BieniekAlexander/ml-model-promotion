@@ -6,8 +6,6 @@
 substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
   _TAG_NAME: "${COMMIT_SHA}"
-  _TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
-  _IMAGE_URI: "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_TAG_NAME}"
   _REGION: us-east1
   _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
   _MODEL_NAME: "census_model_${_TAG_NAME}"
