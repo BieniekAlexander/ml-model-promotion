@@ -96,17 +96,21 @@ steps:
         | sed 's|.*/||' \
         > /workspace/custom_job_id
 
-      echo "gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id)" # TODO debugging, remove
+      echo "Waiting for job $(</workspace/custom_job_id)"
+
       until gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id) | grep -e "^endTime:"
       do
         sleep 30
       done
       
-      echo done waiting for job # TODO debugging, remove
+      echo "done waiting for job $(</workspace/custom_job_id)"
       JOB_STATE=$(gcloud ai custom-jobs describe projects/${PROJECT_NUMBER}/locations/${_REGION}/customJobs/$(</workspace/custom_job_id) | grep -e "^state:" | awk '{print $2}')
 
       if [ $$JOB_STATE != "JOB_STATE_SUCCEEDED" ] ; then
+        echo "Training job $(</workspace/custom_job_id) failed with JOB_STATE=$$JOB_STATE"
         exit 1
+      else
+        echo "Training job $(</workspace/custom_job_id) succeeded with JOB_STATE=$$JOB_STATE"
       fi
 
 # https://cloud.google.com/sdk/gcloud/reference/ai/models
@@ -125,8 +129,10 @@ steps:
       rm /workspace/gcloud_response.json
 
       if [ -s /workspace/model_id ]; then
-        echo "Model exists, TODO update model"
+        echo "Model Uploaded model $(</workspace/model_id) exists, TODO update model"
         # gcloud ai models update ... # TODO update when model update command exists
+        exit 2
+        echo "Updated model $(</workspace/model_id)"
       else
         echo "Model does not exist, uploading new model"
         gcloud ai models upload \
@@ -138,6 +144,8 @@ steps:
         gcloud ai models list --region=${_REGION} --format=json > /workspace/gcloud_response.json
         python /workspace/get_id_by_display_name.py --display-name=${_MODEL_NAME} --json-path=/workspace/gcloud_response.json > /workspace/model_id
         rm /workspace/gcloud_response.json
+
+        echo "Uploaded model $(</workspace/model_id)"
       fi
 
 
@@ -152,13 +160,12 @@ steps:
     - |
       # check if the endpoint currently exists, as identified by display name
       # TODO what if endpoint name isn't unique? Is there a better identifier?
-        
       gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
       python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
       rm /workspace/gcloud_response.json
 
       if [ -s /workspace/endpoint_id ]; then
-        echo "Endpoint exists, skipping endpoint creation"
+        echo "Endpoint $(</workspace/endpoint_id) exists, skipping endpoint creation"
       else
         echo "Endpoint does not exist yet, creating endpoint"
         gcloud ai endpoints create \
@@ -168,6 +175,7 @@ steps:
         gcloud ai endpoints list --region=${_REGION} --format=json > /workspace/gcloud_response.json
         python /workspace/get_id_by_display_name.py --display-name=${_ENDPOINT_NAME} --json-path=/workspace/gcloud_response.json > /workspace/endpoint_id
         rm /workspace/gcloud_response.json
+        echo "Created endpoint $(</workspace/endpoint_id)"
       fi
 
       gcloud ai endpoints deploy-model $(</workspace/endpoint_id) \
@@ -175,3 +183,5 @@ steps:
         --region=${_REGION} \
         --display-name=${_MODEL_NAME} \
         --model=$(</workspace/model_id)
+      
+      echo "Deployed model $(</workspace/model_id) to endpoint $(</workspace/endpoint_id)"
