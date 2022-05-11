@@ -181,6 +181,7 @@ steps:
         --project=${PROJECT_ID} \
         --region=${_REGION} \
         --display-name=${_MODEL_NAME} \
-        --model=$(</workspace/model_id)
+        --model=$(</workspace/model_id) \
+        --traffic-split=$(</workspace/model_id)=100
       
       echo "Deployed model $(</workspace/model_id) to endpoint $(</workspace/endpoint_id)"
