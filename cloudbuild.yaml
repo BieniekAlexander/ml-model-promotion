@@ -150,7 +150,7 @@ steps:
 
 
 # https://cloud.google.com/sdk/gcloud/reference/ai/endpoints
-# TODO how are we selecting the right container to build from? It's hardcoded right now
+# https://cloud.google.com/vertex-ai/docs/predictions/deploy-model-api
 - id: "Create/Update a Vertex AI Endpoint and deploy the new model to it"
   name: gcr.io/cloud-builders/gcloud
   entrypoint: /bin/bash
@@ -182,6 +182,6 @@ steps:
         --region=${_REGION} \
         --display-name=${_MODEL_NAME} \
         --model=$(</workspace/model_id) \
-        --traffic-split=$(</workspace/model_id)=100
+        --traffic-split=0=100
       
       echo "Deployed model $(</workspace/model_id) to endpoint $(</workspace/endpoint_id)"
