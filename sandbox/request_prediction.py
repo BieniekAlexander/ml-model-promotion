@@ -1,3 +1,4 @@
+# source: https://cloud.google.com/vertex-ai/docs/predictions/online-predictions-custom-models#online_predict_custom_trained-python
 # imports
 from google.cloud import aiplatform
 
