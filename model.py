@@ -2,13 +2,15 @@
 # imports
 import pandas as pd
 import numpy as np
+from sklearn.metrics import roc_auc_score
 from xgboost import XGBClassifier
 from google.cloud import storage
 from pathlib import Path
-import argparse	 
+import argparse
+import json
 
 
-def create_model(filename):
+def create_model(model_filepath, report_filepath):
 	# download data
 	project_name = "mw-ds-model-promotion-poc-res"
 	Path("data").mkdir(parents=True, exist_ok=True)
@@ -42,22 +44,28 @@ def create_model(filename):
 	])
 
 	pipe.fit(X_train, y_train)
-	pipe.score(X_test, y_test)
-
-	# TODO do cross-validation
 
 	# Evaluation
-	pipe.score(X_test, y_test)
+	auc_roc = roc_auc_score(y_test, pipe.predict_proba(X_test)[:, 1])
+	evaluation_results = {
+		"evaluation_metric": "auc_roc",
+		"score": auc_roc
+	}
 
-	# Serializing
+	with open(report_filepath, 'w') as report_file:
+		report_file.write(json.dumps(evaluation_results))
+
+	# Serializing the model
 	import joblib
-	joblib.dump(pipe, filename, compress=True)
+	joblib.dump(pipe, model_filepath, compress=True)
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Output model somewhere')
-	parser.add_argument('--filename', dest='filename', default="model.joblib", required=False,
-                    help='name of the model output file (default: model.joblib)')
+	parser.add_argument('--model-filepath', dest='model_filename', default="model.joblib", required=False,
+                    help='path of the model output file (default: model.joblib)')
+	parser.add_argument('--report-filepath', dest='report_filename', default="report.json", required=False,
+                    help='path of the evaluation report json (default: report.json)')
 
 	args = parser.parse_args()
-	create_model(args.filename)
+	create_model(args.model_filename, args.report_filename)
