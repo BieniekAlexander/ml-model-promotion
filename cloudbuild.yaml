@@ -9,9 +9,10 @@ substitutions:
   _TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
   _IMAGE_URI: "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_TAG_NAME}"
   _REGION: us-east1
-  _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
+  _MODEL_GCS_DIRECTORY: "gs://mw-ds-model-promotion-poc-res/census_model"
   _MODEL_NAME: "census_model_${_TAG_NAME}"
   _ENDPOINT_NAME: "census_model_endpoint"
+  _EVALUATION_METRIC_TARGET: ".8"
 timeout: 1800s
 
 steps:
@@ -32,7 +33,7 @@ steps:
       # TODO maybe move args out of custom-jobs create command and move into here
       cat << EOF > /workspace/custom_job_spec.yml
       baseOutputDirectory:
-        outputUriPrefix: "${_MODEL_GCS_PATH}"
+        outputUriPrefix: "${_MODEL_GCS_DIRECTORY}"
       EOF
 
 - id: "Write a python util to parse gcloud data"
@@ -75,7 +76,6 @@ steps:
 
         print(get_id_by_display_name(obj, args.display_name), end='')
       EOF
-
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec
@@ -113,6 +113,40 @@ steps:
         echo "Training job $(</workspace/custom_job_id) succeeded with JOB_STATE=$$JOB_STATE"
       fi
 
+# https://cloud.google.com/sdk/gcloud/reference/builds/cancel
+- id: "Check the evaluation metric in our report - if the model is good enough, upload it to Vertex AI"
+  name: "gcr.io/cloud-builders/gcloud"
+  entrypoint: /bin/bash
+  args:
+    - -c 
+    - |
+      # collect the training job results 
+      export EVALUATION_METRIC_TARGET=${_EVALUATION_METRIC_TARGET}
+      gsutil cp ${_MODEL_GCS_DIRECTORY}/report.json /workspace/report.json
+      gsutil mv ${_MODEL_GCS_DIRECTORY}/report.json ${_MODEL_GCS_DIRECTORY}/reports/${_TRAINING_JOB_NAME}-report.json
+
+      python - <<EOF
+      import json, os
+
+      report = json.load(open("/workspace/report.json", 'r'))
+      evaluation_metric = report['evaluation_metric']
+      score = report['score']
+      target = float(os.environ['EVALUATION_METRIC_TARGET'])
+      print('Model evaluation:\nevaluation_metric: {}\nscore: {}\ntarget: {}'.format(evaluation_metric, score, target))
+
+      if score > target:
+        print("Model beat target, uploading model!")
+        exit(0)
+      else:
+        print("Model failed to beat target, stopping deployment!")
+        exit(1)
+      EOF
+
+      # if the training job did not beat the target score, cancel the build to not deploy the model
+      if [ $$? -ne 0 ]; then
+        gcloud builds cancel $BUILD_ID
+      fi
+
 # https://cloud.google.com/sdk/gcloud/reference/ai/models
 # TODO a model should be able to receive new versions, but it looks like vertex AI doesn't allow this through the CLI yet
 # TODO how are we selecting the right container to build from? It's hardcoded right now
@@ -136,8 +170,8 @@ steps:
       else
         echo "Model does not exist, uploading new model"
         gcloud ai models upload \
-        --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-5:latest \
-        --artifact-uri=$_MODEL_GCS_PATH \
+        --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-0:latest \
+        --artifact-uri=$_MODEL_GCS_DIRECTORY \
         --display-name=${_MODEL_NAME} \
         --region=$_REGION
 
