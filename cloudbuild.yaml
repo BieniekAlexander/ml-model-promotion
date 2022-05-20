@@ -122,8 +122,8 @@ steps:
     - |
       # collect the training job results 
       export EVALUATION_METRIC_TARGET=${_EVALUATION_METRIC_TARGET}
-      gsutil cp $_MODEL_GCS_DIRECTORY/report.json /workspace/report.json
-      gsutil mv $_MODEL_GCS_DIRECTORY/report.json ${_MODEL_GCS_DIRECTORY}/reports/${_TRAINING_JOB_NAME}-report.json
+      gsutil cp ${_MODEL_GCS_DIRECTORY}/report.json /workspace/report.json
+      gsutil mv ${_MODEL_GCS_DIRECTORY}/report.json ${_MODEL_GCS_DIRECTORY}/reports/${_TRAINING_JOB_NAME}-report.json
 
       python - <<EOF
       import json, os
@@ -133,12 +133,12 @@ steps:
       score = report['score']
       target = float(os.environ['EVALUATION_METRIC_TARGET'])
 
-      print(f"""
+      print(f'''
       Model evaluation:
       evaluation_metric: {evaluation_metric}
       score: {score}
       target: {target}
-      """)
+      ''')
 
       if score > target:
         print("Model beat target, uploading model!")
