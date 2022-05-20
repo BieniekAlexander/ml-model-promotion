@@ -81,7 +81,7 @@ steps:
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec
 # TODO when configured, this will create the serving container but not create the VAI model from it
 - id: "Run a training job using the docker image we just uploaded, and wait for the job to finish"
-  name: "gcr.io/cloud-builders/curl"
+  name: "gcr.io/cloud-builders/gcloud"
   entrypoint: /bin/bash
   args:
     - -c 
@@ -115,7 +115,7 @@ steps:
 
 # https://cloud.google.com/sdk/gcloud/reference/builds/cancel
 - id: "Check the evaluation metric in our report - if the model is good enough, upload it to Vertex AI"
-  name: "gcr.io/cloud-builders/curl"
+  name: "gcr.io/cloud-builders/gcloud"
   entrypoint: /bin/bash
   args:
     - -c 
