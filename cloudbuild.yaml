@@ -128,7 +128,7 @@ steps:
       python - <<EOF
       import json, os
 
-      report = json.load(open("report.json", 'r'))
+      report = json.load(open("/workspace/report.json", 'r'))
       evaluation_metric = report['evaluation_metric']
       score = report['score']
       target = float(os.environ['EVALUATION_METRIC_TARGET'])
