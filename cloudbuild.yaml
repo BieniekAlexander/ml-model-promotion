@@ -125,14 +125,14 @@ steps:
       gsutil cp ${_MODEL_GCS_DIRECTORY}/report.json /workspace/report.json
       gsutil mv ${_MODEL_GCS_DIRECTORY}/report.json ${_MODEL_GCS_DIRECTORY}/reports/${_TRAINING_JOB_NAME}-report.json
 
-      cat > eval_model.py <<EOF
+      python - <<EOF
       import json, os
 
       report = json.load(open("/workspace/report.json", 'r'))
       evaluation_metric = report['evaluation_metric']
       score = report['score']
       target = float(os.environ['EVALUATION_METRIC_TARGET'])
-      print(f'Model evaluation:\nevaluation_metric: {evaluation_metric}\nscore: {score}\ntarget: {target}')
+      print('Model evaluation:\nevaluation_metric: {}\nscore: {}\ntarget: {}'.format(evaluation_metric, score, target))
 
       if score > target:
         print("Model beat target, uploading model!")
@@ -141,8 +141,6 @@ steps:
         print("Model failed to beat target, stopping deployment!")
         exit(1)
       EOF
-
-      python eval_model.py
 
       # if the training job did not beat the target score, cancel the build to not deploy the model
       if [ $$? -ne 0 ]; then
