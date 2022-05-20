@@ -132,13 +132,7 @@ steps:
       evaluation_metric = report['evaluation_metric']
       score = report['score']
       target = float(os.environ['EVALUATION_METRIC_TARGET'])
-
-      print(f'''
-      Model evaluation:
-      evaluation_metric: {evaluation_metric}
-      score: {score}
-      target: {target}
-      ''')
+      print(f'Model evaluation:\nevaluation_metric: {evaluation_metric}\nscore: {score}\ntarget: {target}')
 
       if score > target:
         print("Model beat target, uploading model!")
