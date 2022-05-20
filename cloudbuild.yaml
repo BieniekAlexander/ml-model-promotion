@@ -128,12 +128,13 @@ steps:
       python - <<EOF
       import json, os
 
-      report = json.load(open("/workspace/report.json", 'r'))
+      report = json.load(open("report.json", 'r'))
       evaluation_metric = report['evaluation_metric']
       score = report['score']
       target = float(os.environ['EVALUATION_METRIC_TARGET'])
 
-      print(f"""Model evaluation:
+      print(f"""
+      Model evaluation:
       evaluation_metric: {evaluation_metric}
       score: {score}
       target: {target}
