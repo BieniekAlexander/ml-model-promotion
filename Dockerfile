@@ -15,6 +15,5 @@ ENV MODEL_BUCKET_PATH gs://mw-ds-model-promotion-poc-res/census_model
 ENV MODEL_REPORT_NAME report.json
 ENV MODEL_OBJECT_NAME model.joblib
 
-CMD python model.py --model-filepath=$MODEL_FILENAME --report-filepath=$MODEL_REPORT_NAME \
-  && gsutil cp $MODEL_FILENAME $MODEL_BUCKET_PATH/$MODEL_OBJECT_NAME \
-  && gsutil cp $MODEL_REPORT_NAME $MODEL_BUCKET_PATH/$MODEL_REPORT_NAME
+ENTRYPOINT ""
+CMD python model.py --help
