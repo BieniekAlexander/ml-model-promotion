@@ -89,15 +89,16 @@ steps:
   args:
     - -c 
     - |
+      # \
+      #    && gsutil cp model.joblib ${_GCS_MODEL_DIRECTORY}/model.joblib \
+      #    && gsutil cp report.json ${_GCS_MODEL_DIRECTORY}/report.json" \
       gcloud ai custom-jobs create \
         --worker-pool-spec=container-image-uri=${_IMAGE_URI},machine-type=n2-standard-4 \
         --config=/workspace/custom_job_spec.yml \
         --display-name=${_TRAINING_JOB_NAME} \
         --region=${_REGION} \
         --command="python model.py --model-filepath=model.joblib --report-filepath=report.json --gcp-project=${PROJECT_ID} \
-          --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH} --gcs-test-csv-path=${_GCS_TEST_DATA_PATH} \
-          && gsutil cp model.joblib ${_GCS_MODEL_DIRECTORY}/model.joblib \
-          && gsutil cp report.json ${_GCS_MODEL_DIRECTORY}/report.json" \
+          --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH} --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}" 
         2>&1 \
         | grep describe \
         | sed 's|.*/||' \
