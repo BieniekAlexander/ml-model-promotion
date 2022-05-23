@@ -21,10 +21,10 @@ def create_model(model_filepath, report_filepath, gcp_project, gcs_train_csv_pat
 		object_name = uri.split("/")[-1]
 		bucket = storage_client.get_bucket(gcp_project)
 		blob = bucket.blob(object_path)
-		blob.download_to_filename(f"data/{object_name}")
+		blob.download_to_filename("data/{}".format(object_name))
 
-	train_data = pd.read_csv(f'data/{gcs_train_csv_path.split("/")[-1]}', skipinitialspace=True, comment="|")
-	test_data = pd.read_csv(f'data/{gcs_test_csv_path.split("/")[-1]}', skipinitialspace=True, comment="|")
+	train_data = pd.read_csv('data/{}'.format(gcs_train_csv_path.split("/")[-1]), skipinitialspace=True, comment="|")
+	test_data = pd.read_csv('data/{}'.format(gcs_test_csv_path.split("/")[-1]), skipinitialspace=True, comment="|")
 	
 	train_features = list(set(train_data.columns) - set(["income"]))
 	X_train, y_train = train_data.loc[:, train_data.columns.isin(train_features)], np.array(train_data["income"])
@@ -77,4 +77,4 @@ if __name__ == "__main__":
                     help='path to train csv in Google Cloud Storage')
 
 	args = parser.parse_args()
-	create_model(args.model_filename, args.report_filename)
+	create_model(args.model_filename, args.report_filename, args.gcp_project, args.gcs_train_csv_path, args.gcs_test_csv_path)
