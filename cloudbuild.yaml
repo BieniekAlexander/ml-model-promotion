@@ -89,7 +89,7 @@ steps:
   args:
     - -c 
     - |
-      # \
+      # \ 
       #    && gsutil cp model.joblib ${_GCS_MODEL_DIRECTORY}/model.joblib \
       #    && gsutil cp report.json ${_GCS_MODEL_DIRECTORY}/report.json" \
       gcloud ai custom-jobs create \
