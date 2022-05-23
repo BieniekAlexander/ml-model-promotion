@@ -9,7 +9,10 @@ substitutions:
   _TRAINING_JOB_NAME: "${REPO_NAME}-${COMMIT_SHA}-build"
   _IMAGE_URI: "gcr.io/${PROJECT_ID}/${_IMAGE_NAME}:${_TAG_NAME}"
   _REGION: us-east1
-  _MODEL_GCS_DIRECTORY: "gs://mw-ds-model-promotion-poc-res/census_model"
+  _GCS_BUCKET: "gs://${PROJECT_ID}"
+  _GCS_TRAIN_DATA_PATH: "${_GCS_BUCKET}/census_income_data_adult.train.csv"
+  _GCS_TEST_DATA_PATH: "${_GCS_BUCKET}/census_income_data_adult.test.csv"
+  _GCS_MODEL_DIRECTORY: "${_GCS_BUCKET}/census_model"
   _MODEL_NAME: "census_model_${_TAG_NAME}"
   _ENDPOINT_NAME: "census_model_endpoint"
   _EVALUATION_METRIC_TARGET: ".8"
@@ -33,7 +36,7 @@ steps:
       # TODO maybe move args out of custom-jobs create command and move into here
       cat << EOF > /workspace/custom_job_spec.yml
       baseOutputDirectory:
-        outputUriPrefix: "${_MODEL_GCS_DIRECTORY}"
+        outputUriPrefix: "${_GCS_MODEL_DIRECTORY}"
       EOF
 
 - id: "Write a python util to parse gcloud data"
@@ -91,6 +94,10 @@ steps:
         --config=/workspace/custom_job_spec.yml \
         --display-name=${_TRAINING_JOB_NAME} \
         --region=${_REGION} \
+        --command="python model.py --model-filepath=model.joblib --report-filepath=report.json --gcp-project=${PROJECT_ID} \
+          --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH} --gcs-test-csv-path=${_GCS_TEST_DATA_PATH} \
+          && gsutil cp model.joblib ${_GCS_MODEL_DIRECTORY}/model.joblib \
+          && gsutil cp report.json ${_GCS_MODEL_DIRECTORY}/report.json" \
         2>&1 \
         | grep describe \
         | sed 's|.*/||' \
@@ -122,8 +129,8 @@ steps:
     - |
       # collect the training job results 
       export EVALUATION_METRIC_TARGET=${_EVALUATION_METRIC_TARGET}
-      gsutil cp ${_MODEL_GCS_DIRECTORY}/report.json /workspace/report.json
-      gsutil mv ${_MODEL_GCS_DIRECTORY}/report.json ${_MODEL_GCS_DIRECTORY}/reports/${_TRAINING_JOB_NAME}-report.json
+      gsutil cp ${_GCS_MODEL_DIRECTORY}/report.json /workspace/report.json
+      gsutil mv ${_GCS_MODEL_DIRECTORY}/report.json ${_GCS_MODEL_DIRECTORY}/reports/${_TRAINING_JOB_NAME}-report.json
 
       python - <<EOF
       import json, os
@@ -171,7 +178,7 @@ steps:
         echo "Model does not exist, uploading new model"
         gcloud ai models upload \
         --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-0:latest \
-        --artifact-uri=$_MODEL_GCS_DIRECTORY \
+        --artifact-uri=$_GCS_MODEL_DIRECTORY \
         --display-name=${_MODEL_NAME} \
         --region=$_REGION
 

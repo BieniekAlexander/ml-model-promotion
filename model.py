@@ -10,19 +10,21 @@ import argparse
 import json
 
 
-def create_model(model_filepath, report_filepath):
+def create_model(model_filepath, report_filepath, gcp_project, gcs_train_csv_path, gcs_test_csv_path):
 	# download data
-	project_name = "mw-ds-model-promotion-poc-res"
 	Path("data").mkdir(parents=True, exist_ok=True)
-	storage_client = storage.Client(project_name)
-	bucket = storage_client.get_bucket(project_name)
+	storage_client = storage.Client(gcp_project)
 
-	for csv_name in ['census_income_census_income_data_adult.test.csv', 'census_income_census_income_data_adult.data.csv']:
-		blob = bucket.blob(csv_name)
-		blob.download_to_filename(f"data/{csv_name}")
+	for uri in [gcs_train_csv_path, gcs_test_csv_path]:
+		bucket = uri.split("/")[2]
+		object_path = "/".join(uri.split("/")[3:])
+		object_name = uri.split("/")[-1]
+		bucket = storage_client.get_bucket(gcp_project)
+		blob = bucket.blob(object_path)
+		blob.download_to_filename(f"data/{object_name}")
 
-	train_data = pd.read_csv('data/census_income_census_income_data_adult.data.csv', skipinitialspace=True, comment="|")
-	test_data = pd.read_csv('data/census_income_census_income_data_adult.test.csv', skipinitialspace=True, comment="|")
+	train_data = pd.read_csv(f'data/{gcs_train_csv_path.split("/")[-1]}', skipinitialspace=True, comment="|")
+	test_data = pd.read_csv(f'data/{gcs_test_csv_path.split("/")[-1]}', skipinitialspace=True, comment="|")
 	
 	train_features = list(set(train_data.columns) - set(["income"]))
 	X_train, y_train = train_data.loc[:, train_data.columns.isin(train_features)], np.array(train_data["income"])
@@ -66,6 +68,13 @@ if __name__ == "__main__":
                     help='path of the model output file (default: model.joblib)')
 	parser.add_argument('--report-filepath', dest='report_filename', default="report.json", required=False,
                     help='path of the evaluation report json (default: report.json)')
+
+	parser.add_argument('--gcp-project', dest='gcp_project', default="report.json", required=True,
+                    help='GCP project where Cloud Storage bucket lives')
+	parser.add_argument('--gcs-train-csv-path', dest='gcs_train_csv_path', default="report.json", required=True,
+                    help='path to train csv in Google Cloud Storage')
+	parser.add_argument('--gcs-test-csv-path', dest='gcs_test_csv_path', default="report.json", required=True,
+                    help='path to train csv in Google Cloud Storage')
 
 	args = parser.parse_args()
 	create_model(args.model_filename, args.report_filename)
