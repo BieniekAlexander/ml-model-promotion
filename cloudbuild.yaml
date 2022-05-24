@@ -102,9 +102,6 @@ steps:
   args:
     - -c 
     - |
-      # \ 
-      #    && gsutil cp model.joblib ${_GCS_MODEL_DIRECTORY}/model.joblib \
-      #    && gsutil cp report.json ${_GCS_MODEL_DIRECTORY}/report.json" \
       gcloud ai custom-jobs create \
         --config=/workspace/custom_job_spec.yml \
         --display-name=${_TRAINING_JOB_NAME} \
@@ -113,8 +110,6 @@ steps:
         | grep describe \
         | sed 's|.*/||' \
         > /workspace/custom_job_id
-
-        --gcs-train-csv-path, --gcs-test-csv-path
 
       echo "Waiting for job $(</workspace/custom_job_id)"
 
