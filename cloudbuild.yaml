@@ -75,6 +75,13 @@ steps:
   args:
     - -c 
     - |
+      # command:
+      # - --model-filepath=model.joblib
+      # - --report-filepath=report.json
+      # - --gcp-project=${PROJECT_ID}
+      # - --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH}
+      # - --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}
+      # - --gcs-model-output-path=${_GCS_BUCKET}
       # TODO maybe move args out of custom-jobs create command and move into here
       cat << EOF > /workspace/custom_job_spec.yml
       workerPoolSpecs:
@@ -83,13 +90,6 @@ steps:
         replicaCount: 1
         containerSpec:
           imageUri: ${_IMAGE_URI}
-          command:
-          - --model-filepath=model.joblib
-          - --report-filepath=report.json
-          - --gcp-project=${PROJECT_ID}
-          - --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH}
-          - --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}
-          - --gcs-model-output-path=${_GCS_BUCKET}
       - {}
       - {}
       - {}
