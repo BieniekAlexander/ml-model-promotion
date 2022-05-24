@@ -68,6 +68,7 @@ steps:
         print(get_id_by_display_name(obj, args.display_name), end='')
       EOF
 
+# # https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec
 - id: "Create the CustomJobSpec YAML file for the Vertex AI Training Job"
   name: gcr.io/cloud-builders/curl
   entrypoint: /bin/bash
@@ -79,22 +80,21 @@ steps:
       baseOutputDirectory:
         outputUriPrefix: "${_GCS_MODEL_DIRECTORY}"
       workerPoolSpecs:
-      machineSpec:
-        machineType: n2-standard-4
-      replicaCount: 1
-      containerSpec:
-        imageUri: ${_IMAGE_URI}
-        command:
-        - --model-filepath=model.joblib
-        - --report-filepath=report.json
-        - --gcp-project=${PROJECT_ID}
-        - --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH}
-        - --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}
-        - --gcs-model-output-path=${_GCS_BUCKET}
+        machineSpec:
+          machineType: n2-standard-4
+        replicaCount: 1
+        containerSpec:
+          imageUri: ${_IMAGE_URI}
+          command:
+          - --model-filepath=model.joblib
+          - --report-filepath=report.json
+          - --gcp-project=${PROJECT_ID}
+          - --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH}
+          - --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}
+          - --gcs-model-output-path=${_GCS_BUCKET}
       EOF
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
-# https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec
 # TODO when configured, this will create the serving container but not create the VAI model from it
 - id: "Run a training job using the docker image we just uploaded, and wait for the job to finish"
   name: "gcr.io/cloud-builders/gcloud"
