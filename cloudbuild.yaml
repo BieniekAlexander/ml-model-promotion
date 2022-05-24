@@ -97,8 +97,8 @@ steps:
         --config=/workspace/custom_job_spec.yml \
         --display-name=${_TRAINING_JOB_NAME} \
         --region=${_REGION} \
-        --command="python model.py --model-filepath=model.joblib --report-filepath=report.json --gcp-project=${PROJECT_ID} \
-          --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH} --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}" 
+        --command="--model-filepath=model.joblib --report-filepath=report.json --gcp-project=${PROJECT_ID} \
+          --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH} --gcs-test-csv-path=${_GCS_TEST_DATA_PATH} --gcs-model-output-path=${_GCS_BUCKET}" \
         2>&1 \
         | grep describe \
         | sed 's|.*/||' \

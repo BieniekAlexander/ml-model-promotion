@@ -3,14 +3,13 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics import roc_auc_score
-from xgboost import XGBClassifier
 from google.cloud import storage
 from pathlib import Path
 import argparse
 import json
 
 
-def create_model(model_filepath, report_filepath, gcp_project, gcs_train_csv_path, gcs_test_csv_path):
+def create_model(model_filepath, report_filepath, gcp_project, gcs_train_csv_path, gcs_test_csv_path, gcs_model_output_path=None):
 	# download data
 	Path("data").mkdir(parents=True, exist_ok=True)
 	storage_client = storage.Client(gcp_project)
@@ -61,6 +60,16 @@ def create_model(model_filepath, report_filepath, gcp_project, gcs_train_csv_pat
 	import joblib
 	joblib.dump(pipe, model_filepath, compress=True)
 
+	# write the model and results to the specified GCS location, if provided
+	if gcs_model_output_path:
+		storage_client = storage.Client(gcp_project)
+		bucket = storage_client.get_bucket(gcs_model_output_path.split("/")[2])
+
+		for item in [model_filepath, report_filepath]:
+			blob = bucket.blob("census_model/{}".format(item.split('/')[-1]))
+			blob.upload_from_filename(item)
+
+
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Output model somewhere')
@@ -68,13 +77,15 @@ if __name__ == "__main__":
                     help='path of the model output file (default: model.joblib)')
 	parser.add_argument('--report-filepath', dest='report_filename', default="report.json", required=False,
                     help='path of the evaluation report json (default: report.json)')
-
 	parser.add_argument('--gcp-project', dest='gcp_project', default="report.json", required=True,
                     help='GCP project where Cloud Storage bucket lives')
 	parser.add_argument('--gcs-train-csv-path', dest='gcs_train_csv_path', default="report.json", required=True,
                     help='path to train csv in Google Cloud Storage')
 	parser.add_argument('--gcs-test-csv-path', dest='gcs_test_csv_path', default="report.json", required=True,
                     help='path to train csv in Google Cloud Storage')
+	parser.add_argument('--gcs-model-output-path', dest='gcs_model_output_path', default=None, required=False,
+                    help='if supplied, write the model and results to the specified GCS location')
+
 
 	args = parser.parse_args()
-	create_model(args.model_filename, args.report_filename, args.gcp_project, args.gcs_train_csv_path, args.gcs_test_csv_path)
+	create_model(args.model_filename, args.report_filename, args.gcp_project, args.gcs_train_csv_path, args.gcs_test_csv_path, args.gcs_model_output_path)
