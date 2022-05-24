@@ -90,9 +90,6 @@ steps:
         replicaCount: 1
         containerSpec:
           imageUri: ${_IMAGE_URI}
-      - {}
-      - {}
-      - {}
       EOF
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
