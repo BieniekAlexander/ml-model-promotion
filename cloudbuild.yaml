@@ -77,10 +77,8 @@ steps:
     - |
       # TODO maybe move args out of custom-jobs create command and move into here
       cat << EOF > /workspace/custom_job_spec.yml
-      baseOutputDirectory:
-        outputUriPrefix: "${_GCS_MODEL_DIRECTORY}"
       workerPoolSpecs:
-        machineSpec:
+      - machineSpec:
           machineType: n2-standard-4
         replicaCount: 1
         containerSpec:
@@ -92,6 +90,9 @@ steps:
           - --gcs-train-csv-path=${_GCS_TRAIN_DATA_PATH}
           - --gcs-test-csv-path=${_GCS_TEST_DATA_PATH}
           - --gcs-model-output-path=${_GCS_BUCKET}
+      - {}
+      - {}
+      - {}
       EOF
  
 # https://cloud.google.com/sdk/gcloud/reference/ai/custom-jobs/create
