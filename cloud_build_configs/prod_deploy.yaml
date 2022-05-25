@@ -7,7 +7,7 @@ substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
   _TAG_NAME: "${COMMIT_SHA}"
   _REGION: us-east1
-  _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
+  _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-qa/census_model"
   _MODEL_NAME: "census_model_${_TAG_NAME}"
   _ENDPOINT_NAME: "census_model_endpoint"
 timeout: 1800s
