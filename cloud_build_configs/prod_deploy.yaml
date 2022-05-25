@@ -7,7 +7,7 @@ substitutions:
   _IMAGE_NAME: "github.com/bieniekalexander/ml-model-promotion"
   _TAG_NAME: "${COMMIT_SHA}"
   _REGION: us-east1
-  _MODEL_GCS_PATH: "gs://mw-ds-model-promotion-poc-res/census_model"
+  _GCS_MODEL_DIRECTORY: "gs://mw-ds-model-promotion-poc-qa/census_model"
   _MODEL_NAME: "census_model_${_TAG_NAME}"
   _ENDPOINT_NAME: "census_model_endpoint"
 timeout: 1800s
@@ -77,8 +77,8 @@ steps:
       else
         echo "Model does not exist, uploading new model"
         gcloud ai models upload \
-        --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/xgboost-cpu.1-5:latest \
-        --artifact-uri=$_MODEL_GCS_PATH \
+        --container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-0:latest \
+        --artifact-uri=$_GCS_MODEL_DIRECTORY \
         --display-name=${_MODEL_NAME} \
         --region=$_REGION
 
