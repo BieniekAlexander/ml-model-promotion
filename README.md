@@ -23,7 +23,7 @@ pip freeze > requirements.txt
 ```
 
 
-# Building the code
+# Building the Code
 ```
 # building the docker image
 docker build .
