@@ -1,6 +1,6 @@
 Deprecated==1.2.13
 joblib==1.1.0
-numpy==1.22.3
-pandas==1.4.2
+numpy
+pandas
 PyYAML==5.4.1
 scikit-learn==1.0.2
