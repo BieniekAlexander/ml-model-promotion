@@ -1,6 +1,16 @@
 {
-	"instances": [ 
-		[25, "Private", 226802, "11th", 7, "Never-married", "Machine-op-inspct", "Own-child", "Black", "Male", 0, 0, 40, "United-States"]
-
-	]
+	"age": 25,
+	"workclass": "Private",
+	"fnlwgt": 226802,
+	"education": "11th",
+	"education-num": 7,
+	"marital-status": "Never-married",
+	"occupation": "Machine-op-inspct",
+	"relationship": "Own-child",
+	"race": "Black",
+	"sex": "Male",
+	"capital-gain": 0,
+	"capital-loss": 0,
+	"hours-per-week": 40,
+	"native-country": "United-States"
 }
